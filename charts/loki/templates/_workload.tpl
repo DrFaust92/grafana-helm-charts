@@ -37,7 +37,7 @@ metadata:
   {{- end }}
 spec:
 {{- if and (not (dig "autoscaling" "enabled" false $component)) (not (dig "kedaAutoscaling" "enabled" false $component)) (not (kindIs "invalid" $component.replicas)) }}
-  replicas: {{ $component.replicas }}
+  replicas: {{ if eq $target "single-binary" }}{{ include "loki.monolithicReplicas" $ctx }}{{ else }}{{ $component.replicas }}{{ end }}
 {{- end }}
   {{- if eq $component.kind "StatefulSet" }}
   {{- with $component.podManagementPolicy }}
@@ -106,7 +106,7 @@ spec:
     - apiVersion: v1
       kind: PersistentVolumeClaim
       metadata:
-        name: data
+        name: {{ eq $target "single-binary" | ternary "storage" "data" }}
         {{- with $component.persistence.annotations }}
         annotations:
           {{- toYaml . | nindent 10 }}
