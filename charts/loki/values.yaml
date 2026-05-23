@@ -2429,6 +2429,8 @@ ingester:
   enabled: true
   # -- Number of replicas for the ingester, when zoneAwareReplication.enabled is true, the total
   # number of replicas will match this value with each zone having 1/3rd of the total replicas.
+  # Set to null to omit spec.replicas from the StatefulSet, allowing an external controller
+  # (e.g. HPA, KEDA, rollout-operator) to manage replica counts without Helm resetting them.
   replicas: 0
   # -- DNSConfig for ingester pods
   dnsConfig: {}
