@@ -3497,8 +3497,11 @@ distributor:
   # @schema type:[string, array, null]
   # -- Containers to add to the distributor pods
   extraContainers: []
-  # -- Grace period to allow the distributor to shutdown before it is killed
-  terminationGracePeriodSeconds: 30
+  # @schema type:[string, null]
+  # -- On SIGTERM, report 503 on /ready and wait this long before shutdown so the LB drains the pod. "0s" disables.
+  shutdownDelay: 60s
+  # -- Grace period before the distributor is killed. Must exceed shutdownDelay + server graceful_shutdown_timeout (30s).
+  terminationGracePeriodSeconds: 100
   podDisruptionBudget:
     # -- Enable Pod Disruption Budget
     enabled: true

@@ -3540,13 +3540,20 @@
                     "deprecated": true,
                     "type": "string"
                 },
+                "shutdownDelay": {
+                    "description": "On SIGTERM, report 503 on /ready and wait this long before shutdown so the LB drains the pod. \"0s\" disables.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "strategy": {
                     "description": "UpdateStrategy or Strategy for the distributor.",
                     "type": "object",
                     "additionalProperties": true
                 },
                 "terminationGracePeriodSeconds": {
-                    "description": "Grace period to allow the distributor to shutdown before it is killed",
+                    "description": "Grace period before the distributor is killed. Must exceed shutdownDelay + server graceful_shutdown_timeout (30s).",
                     "type": "integer"
                 },
                 "tolerations": {
