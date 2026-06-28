@@ -3,7 +3,7 @@ templates:
   - distributor/workload.yaml
   - config.yaml
 tests:
-  - it: renders -shutdown-delay and a matching grace period by default
+  - it: renders no -shutdown-delay by default (0s) and leaves grace at 30
     template: distributor/workload.yaml
     set:
       deploymentMode: Distributed
@@ -13,14 +13,14 @@ tests:
       loki.storage.bucketNames.ruler: ruler
       loki.storage.bucketNames.admin: admin
     asserts:
-      - contains:
+      - notContains:
           path: spec.template.spec.containers[0].args
-          content: -shutdown-delay=60s
+          content: -shutdown-delay=0s
       - equal:
           path: spec.template.spec.terminationGracePeriodSeconds
-          value: 100
+          value: 30
 
-  - it: shutdownDelay is configurable
+  - it: shutdownDelay is opt-in and configurable
     template: distributor/workload.yaml
     set:
       deploymentMode: Distributed
@@ -35,21 +35,6 @@ tests:
           path: spec.template.spec.containers[0].args
           content: -shutdown-delay=90s
 
-  - it: shutdown-delay is omitted when shutdownDelay is unset
-    template: distributor/workload.yaml
-    set:
-      deploymentMode: Distributed
-      loki.commonConfig.replication_factor: 1
-      loki.useTestSchema: true
-      loki.storage.bucketNames.chunks: chunks
-      loki.storage.bucketNames.ruler: ruler
-      loki.storage.bucketNames.admin: admin
-      distributor.shutdownDelay: null
-    asserts:
-      - notContains:
-          path: spec.template.spec.containers[0].args
-          content: -shutdown-delay=60s
-
   - it: shutdown-delay survives a user-supplied extraArgs override
     template: distributor/workload.yaml
     set:
@@ -59,6 +44,7 @@ tests:
       loki.storage.bucketNames.chunks: chunks
       loki.storage.bucketNames.ruler: ruler
       loki.storage.bucketNames.admin: admin
+      distributor.shutdownDelay: 60s
       distributor.extraArgs:
         - -log.level=debug
     asserts:
