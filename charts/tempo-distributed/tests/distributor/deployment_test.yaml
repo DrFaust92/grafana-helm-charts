@@ -350,17 +350,17 @@ tests:
             name: tempo-distributor-store
             emptyDir: {}
 
-  - it: renders -shutdown-delay and a matching grace period by default
+  - it: renders no -shutdown-delay by default (0s) and leaves grace at 30
     template: distributor/deployment-distributor.yaml
     asserts:
-      - contains:
+      - notContains:
           path: spec.template.spec.containers[0].args
-          content: -shutdown-delay=60s
+          content: -shutdown-delay=0s
       - equal:
           path: spec.template.spec.terminationGracePeriodSeconds
-          value: 100
+          value: 30
 
-  - it: shutdownDelay is configurable
+  - it: shutdownDelay is opt-in and configurable
     template: distributor/deployment-distributor.yaml
     set:
       distributor.shutdownDelay: 90s
@@ -369,18 +369,10 @@ tests:
           path: spec.template.spec.containers[0].args
           content: -shutdown-delay=90s
 
-  - it: shutdown-delay is omitted when shutdownDelay is unset
-    template: distributor/deployment-distributor.yaml
-    set:
-      distributor.shutdownDelay: null
-    asserts:
-      - notContains:
-          path: spec.template.spec.containers[0].args
-          content: -shutdown-delay=60s
-
   - it: shutdown-delay survives a user-supplied extraArgs override
     template: distributor/deployment-distributor.yaml
     set:
+      distributor.shutdownDelay: 60s
       distributor.extraArgs:
         - -log.level=debug
     asserts:
