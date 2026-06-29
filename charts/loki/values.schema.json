@@ -3540,6 +3540,13 @@
                     "deprecated": true,
                     "type": "string"
                 },
+                "shutdownDelay": {
+                    "description": "On SIGTERM, report 503 on /ready and wait this long before shutdown so the LB drains the pod before connections are cut. \"0s\" (default) disables. When enabling, keep terminationGracePeriodSeconds above shutdownDelay + server.graceful_shutdown_timeout.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "strategy": {
                     "description": "UpdateStrategy or Strategy for the distributor.",
                     "type": "object",
