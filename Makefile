@@ -13,6 +13,14 @@ helm-unittest:
 	docker run --rm -v $(MAKEFILE_DIR):/apps helmunittest/helm-unittest:$(HELM_UNITTEST_TAG) --strict --file '$(HELM_UNITTEST_FILE)' charts/$(HELM_CHART)
 
 
+# Regenerates values.schema.json for every targeted chart whose values.yaml opts in via "# $schema: ./values.schema.json"
 .PHONY: helm-schema
 helm-schema:
-	helm schema --config $(MAKEFILE_DIR).github/linters/.schema.yaml -f charts/loki/values.yaml -o charts/loki/values.schema.json
+	@found=0; \
+	for chart in charts/$(HELM_CHART)/; do \
+		if grep -q '^# \$$schema: ./values.schema.json' "$${chart}values.yaml" 2>/dev/null; then \
+			found=1; \
+			helm schema --config $(MAKEFILE_DIR).github/linters/.schema.yaml -f "$${chart}values.yaml" -o "$${chart}values.schema.json" || exit 1; \
+		fi; \
+	done; \
+	if [ "$$found" -eq 0 ]; then echo "No chart matching '$(HELM_CHART)' has a '# \$$schema: ./values.schema.json' header." >&2; exit 1; fi
