@@ -229,6 +229,8 @@ containerSecurityContext:
   runAsNonRoot: true
   runAsUser: 1000
   runAsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
 
 # -- Pod security context
 securityContext:
@@ -236,9 +238,14 @@ securityContext:
   runAsNonRoot: true
   runAsUser: 1000
   runAsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
 
-# -- Automount service account token
-automountServiceAccountToken: true
+# -- Automount the service account token into the pod. This takes precedence over
+# `serviceAccount.automountServiceAccountToken`, so it must also be false for the
+# token to stay unmounted. grafana-mcp only talks to the Grafana HTTP API and never
+# calls the Kubernetes API, so it does not need a token.
+automountServiceAccountToken: false
 
 # -- Node selector
 nodeSelector: {}
