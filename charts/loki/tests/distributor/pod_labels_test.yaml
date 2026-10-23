@@ -17,6 +17,8 @@ tests:
       - exists:
           path: metadata.labels["helm.sh/chart"]
 
+  # Pinning the whole map rather than a subset: an isSubset assertion would still
+  # pass if some other version-derived label were added to the pod template later.
   - it: should keep the pod labels unchanged when only the chart version changes
     template: distributor/workload.yaml
     chart:
@@ -27,10 +29,89 @@ tests:
       loki.storage.bucketNames.ruler: ruler
       loki.storage.bucketNames.admin: admin
     asserts:
-      - notExists:
-          path: spec.template.metadata.labels["helm.sh/chart"]
-      - isSubset:
+      - equal:
           path: spec.template.metadata.labels
-          content:
+          value:
+            app.kubernetes.io/name: loki
+            app.kubernetes.io/instance: RELEASE-NAME
             app.kubernetes.io/component: distributor
             app.kubernetes.io/part-of: memberlist
+
+  # loki.labels carried commonLabels onto pods, so moving the pod template to
+  # selectorLabels dropped them. values.yaml documents commonLabels as applying to
+  # resources, and policy engines and cost allocation match pods on them.
+  - it: should apply commonLabels to the pod template
+    template: distributor/workload.yaml
+    set:
+      deploymentMode: Distributed
+      loki.storage.bucketNames.chunks: chunks
+      loki.storage.bucketNames.ruler: ruler
+      loki.storage.bucketNames.admin: admin
+      commonLabels:
+        team: obs
+        cost-centre: "1234"
+    asserts:
+      - equal:
+          path: spec.template.metadata.labels
+          value:
+            app.kubernetes.io/name: loki
+            app.kubernetes.io/instance: RELEASE-NAME
+            app.kubernetes.io/component: distributor
+            app.kubernetes.io/part-of: memberlist
+            team: obs
+            cost-centre: "1234"
+
+  # The reserved-key unset protects the labels the workload selector matches on.
+  # Driven through podLabels rather than commonLabels because loki.labels appends
+  # commonLabels after selectorLabels without dedup, so a selector key there makes
+  # the object metadata itself invalid YAML -- a pre-existing issue, unrelated to this.
+  - it: should not let podLabels override a chart-owned selector label
+    template: distributor/workload.yaml
+    set:
+      deploymentMode: Distributed
+      loki.storage.bucketNames.chunks: chunks
+      loki.storage.bucketNames.ruler: ruler
+      loki.storage.bucketNames.admin: admin
+      distributor.podLabels:
+        app.kubernetes.io/component: hijack
+        app.kubernetes.io/name: hijack
+        team: obs
+    asserts:
+      - equal:
+          path: spec.template.metadata.labels["app.kubernetes.io/component"]
+          value: distributor
+      - equal:
+          path: spec.template.metadata.labels["app.kubernetes.io/name"]
+          value: loki
+      - equal:
+          path: spec.template.metadata.labels.team
+          value: obs
+      - equal:
+          path: spec.selector.matchLabels["app.kubernetes.io/component"]
+          value: distributor
+      - equal:
+          path: spec.template.metadata.labels["app.kubernetes.io/name"]
+          value: loki
+      - equal:
+          path: spec.template.metadata.labels.team
+          value: obs
+      - equal:
+          path: spec.selector.matchLabels["app.kubernetes.io/component"]
+          value: distributor
+
+  # podLabels is the explicit per-component override, so it has to win over commonLabels.
+  - it: should let podLabels override commonLabels
+    template: distributor/workload.yaml
+    set:
+      deploymentMode: Distributed
+      loki.storage.bucketNames.chunks: chunks
+      loki.storage.bucketNames.ruler: ruler
+      loki.storage.bucketNames.admin: admin
+      commonLabels:
+        team: obs
+      distributor.podLabels:
+        team: ingest
+    asserts:
+      - equal:
+          path: spec.template.metadata.labels.team
+          value: ingest
