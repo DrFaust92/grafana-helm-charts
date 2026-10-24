@@ -95,7 +95,7 @@ This chart emits `apiVersion: v1` and `kind: PersistentVolumeClaim` on each VCT.
 
 ## Upgrading
 
-### From 19.1.x to 19.2.0 ([#809](https://github.com/grafana-community/helm-charts/pull/809))
+### From 19.2.x to 19.3.0 ([#809](https://github.com/grafana-community/helm-charts/pull/809))
 
 Pod templates no longer carry `helm.sh/chart` or `app.kubernetes.io/version`. `helm.sh/chart` changed on every chart version bump, and because it sat inside the pod template it rolled every workload on upgrade even when neither the configuration nor the image had changed. They remain on the objects themselves, so `kubectl get deploy -L helm.sh/chart` is unaffected.
 
