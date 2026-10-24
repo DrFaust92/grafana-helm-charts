@@ -46,6 +46,17 @@ See the [changelog](https://grafana-community.github.io/helm-charts/changelog/?c
 
 A major chart version change indicates that there is an incompatible breaking change needing manual actions.
 
+### From Chart versions < 0.30.0
+
+`automountServiceAccountToken` now defaults to `false` on the pod template, so the Kubernetes
+service account token is no longer mounted into the container. The chart already set
+`serviceAccount.automountServiceAccountToken: false`, but the pod-level field takes precedence
+and was `true`, so the token was mounted regardless of that setting.
+
+grafana-mcp talks to the Grafana HTTP API and does not call the Kubernetes API, so no action is
+needed for a normal install. If something in your setup reads the mounted token -- a sidecar, or
+a custom image -- set `automountServiceAccountToken: true` to restore the previous behaviour.
+
 ### From Chart versions < 0.29.0
 The MCP HTTP endpoint is now protected by a bearer token (`MCP_GRAFANA_SERVER_TOKEN`). If `serverAuth.token` and
 `serverAuth.tokenSecret.name` are not set, the chart generates a random token and stores it as `server-token` in the

@@ -229,6 +229,8 @@ containerSecurityContext:
   runAsNonRoot: true
   runAsUser: 1000
   runAsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
 
 # -- Pod security context
 securityContext:
@@ -236,9 +238,14 @@ securityContext:
   runAsNonRoot: true
   runAsUser: 1000
   runAsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
 
-# -- Automount service account token
-automountServiceAccountToken: true
+# -- Automount the service account token into the pod. This takes precedence over
+# `serviceAccount.automountServiceAccountToken`, so it must also be false for the
+# token to stay unmounted. grafana-mcp only talks to the Grafana HTTP API and never
+# calls the Kubernetes API, so it does not need a token.
+automountServiceAccountToken: false
 
 # -- Node selector
 nodeSelector: {}
@@ -307,6 +314,10 @@ extraContainers: []
 metrics:
   # -- Enable Prometheus metrics endpoint (adds --metrics flag)
   enabled: false
+  # -- Serve metrics on a separate port (adds `--metrics-address=:<port>`). The port is exposed on the
+  # container and the Service as `metrics` and scraped by the ServiceMonitor. Unlike the MCP port, the
+  # separate listener does not enforce Host/Origin validation. Leave empty to serve metrics on the MCP port.
+  port: ""
 
 # -- ServiceMonitor configuration for Prometheus Operator
 serviceMonitor:
@@ -322,6 +333,8 @@ serviceMonitor:
   scrapeTimeout: 10s
   # -- Metrics path
   path: /metrics
+  # -- Service port name to scrape. Defaults to `metrics` when `metrics.port` is set, otherwise `mcp-http`
+  port: ""
   # -- Additional relabelings
   relabelings: []
   # -- Additional metric relabelings
