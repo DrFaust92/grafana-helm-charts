@@ -97,11 +97,11 @@ This chart emits `apiVersion: v1` and `kind: PersistentVolumeClaim` on each VCT.
 
 ### From 19.1.x to 19.2.0 ([#809](https://github.com/grafana-community/helm-charts/pull/809))
 
-Pod templates no longer carry `helm.sh/chart` or `app.kubernetes.io/version`. Those two labels changed on every chart version bump and on every image tag change, and because they sit inside the pod template they rolled every workload on upgrade even when nothing about the configuration or the image had changed. They remain on the objects themselves, so `kubectl get deploy -L helm.sh/chart` is unaffected.
+Pod templates no longer carry `helm.sh/chart` or `app.kubernetes.io/version`. `helm.sh/chart` changed on every chart version bump, and because it sat inside the pod template it rolled every workload on upgrade even when neither the configuration nor the image had changed. They remain on the objects themselves, so `kubectl get deploy -L helm.sh/chart` is unaffected.
 
-If you group metrics by pod label -- `kube_pod_labels` joined on `label_app_kubernetes_io_version`, for example -- those series will stop being populated for Loki pods. Use the object-level label, or add the value you need through `commonLabels` or a component `podLabels` block.
+If you group metrics by pod label (`kube_pod_labels` joined on `label_app_kubernetes_io_version`, for example), those series will stop being populated for Loki pods. Use the object-level label, or add the value you need through `commonLabels` or a component `podLabels` block.
 
-`commonLabels` still applies to pod templates, as it did before.
+`commonLabels` still applies to the pod templates of the Loki components. The gateway, canary and memcached pod templates do not carry it, as before.
 
 ### From 18.x to 19.0.0 ([#883](https://github.com/grafana-community/helm-charts/pull/883))
 

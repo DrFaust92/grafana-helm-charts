@@ -17,8 +17,7 @@ tests:
       - exists:
           path: metadata.labels["helm.sh/chart"]
 
-  # Pinning the whole map rather than a subset: an isSubset assertion would still
-  # pass if some other version-derived label were added to the pod template later.
+  # The whole map is pinned so any version-derived pod label fails this case.
   - it: should keep the pod labels unchanged when only the chart version changes
     template: distributor/workload.yaml
     chart:
@@ -37,9 +36,6 @@ tests:
             app.kubernetes.io/component: distributor
             app.kubernetes.io/part-of: memberlist
 
-  # loki.labels carried commonLabels onto pods, so moving the pod template to
-  # selectorLabels dropped them. values.yaml documents commonLabels as applying to
-  # resources, and policy engines and cost allocation match pods on them.
   - it: should apply commonLabels to the pod template
     template: distributor/workload.yaml
     set:
@@ -61,10 +57,8 @@ tests:
             team: obs
             cost-centre: "1234"
 
-  # The reserved-key unset protects the labels the workload selector matches on.
-  # Driven through podLabels rather than commonLabels because loki.labels appends
-  # commonLabels after selectorLabels without dedup, so a selector key there makes
-  # the object metadata itself invalid YAML -- a pre-existing issue, unrelated to this.
+  # Driven through podLabels: a selector key in commonLabels also lands in the object
+  # metadata through loki.labels, which does not dedup it.
   - it: should not let podLabels override a chart-owned selector label
     template: distributor/workload.yaml
     set:
@@ -79,15 +73,6 @@ tests:
     asserts:
       - equal:
           path: spec.template.metadata.labels["app.kubernetes.io/component"]
-          value: distributor
-      - equal:
-          path: spec.template.metadata.labels["app.kubernetes.io/name"]
-          value: loki
-      - equal:
-          path: spec.template.metadata.labels.team
-          value: obs
-      - equal:
-          path: spec.selector.matchLabels["app.kubernetes.io/component"]
           value: distributor
       - equal:
           path: spec.template.metadata.labels["app.kubernetes.io/name"]

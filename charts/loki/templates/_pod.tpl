@@ -29,10 +29,7 @@ metadata:
     name: {{ if $component.addIngesterNamePrefix }}loki-{{ end }}{{ $target }}-{{ $rolloutZoneName }}
     rollout-group: {{ with $component.rolloutGroupPrefix }}{{ . }}-{{ end }}{{ $target }}
     {{- end }}
-    {{- /* commonLabels is documented as applying to resources, and loki.labels carried it
-    onto pods before the pod template switched to selectorLabels. Merge it in at the
-    lowest precedence so podLabels overrides still win, and so the reserved-key unset
-    below still strips anything that would clash with a workload selector. */}}
+    {{- /* commonLabels has the lowest precedence; reserved keys are stripped below */}}
     {{- $podLabels := mergeOverwrite (dict) (.Values.commonLabels | default (dict)) .Values.loki.podLabels .Values.defaults.podLabels $component.podLabels }}
     {{- /* labels referenced by the workload selectors (and, for zone-aware ingesters, the
     per-zone headless Services and grafana/rollout-operator) are chart-owned and must win */}}
