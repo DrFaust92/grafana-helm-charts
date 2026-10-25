@@ -4846,10 +4846,6 @@
                 }
             }
         },
-        "ignoreMinioDeprecation": {
-            "description": "Ignore MinIO deprecation validation when `minio.enabled=true`. This is a temporary compatibility escape hatch.",
-            "type": "boolean"
-        },
         "imagePullSecrets": {
             "description": "Image pull secrets for Docker images",
             "type": "array"
@@ -7096,11 +7092,6 @@
                     }
                 }
             }
-        },
-        "minio": {
-            "description": "Configuration for the minio subchart (deprecated)",
-            "type": "object",
-            "additionalProperties": true
         },
         "monitoring": {
             "description": "Monitoring section determines which monitoring features to enable",
@@ -12508,7 +12499,7 @@
             }
         }
     },
-    "additionalProperties": true,
+    "additionalProperties": false,
     "$defs": {
         "_definitions.json": {
             "definitions": {
