@@ -4966,10 +4966,6 @@
                         "null"
                     ]
                 },
-                "joinMemberlist": {
-                    "description": "Whether the index gateway should join the memberlist hashring",
-                    "type": "boolean"
-                },
                 "kind": {
                     "description": "Kind of index-gateway deployment. StatefulSet and Deployment are supported.",
                     "type": "string"

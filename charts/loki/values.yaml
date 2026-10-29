@@ -1230,6 +1230,10 @@ networkPolicy:
 ######################################################################################################################
 
 # Configuration for the memberlist service
+# The service selects pods labeled `app.kubernetes.io/part-of: memberlist` and is used as the seed list for
+# `memberlist.join_members`. Only components that always run a memberlist listener get this label. Components that
+# only use memberlist with some configurations (query-frontend, query-scheduler, index-gateway, bloom components,
+# overrides-exporter; all of them when `loki.ui.enabled` is true) still join the cluster through these seed nodes.
 memberlist:
   service:
     publishNotReadyAddresses: false
@@ -4563,8 +4567,6 @@ indexGateway:
   # -- Number of replicas for the index-gateway. Set to null to omit spec.replicas from the workload,
   # allowing an external controller (e.g. HPA, KEDA, rollout-operator) to manage replica counts without Helm resetting them.
   replicas: 0
-  # -- Whether the index gateway should join the memberlist hashring
-  joinMemberlist: true
   # @schema additionalProperties:true
   # -- DNSConfig for index-gateway pods
   dnsConfig: {}
